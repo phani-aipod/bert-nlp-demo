@@ -120,7 +120,7 @@ tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
 model = torch.load('trained_model.pth',torch.device(device))
 
 from flask import Flask, render_template, request
-#flask web app
+
 app = Flask(__name__)
 app.static_folder = 'static'
 @app.route("/")

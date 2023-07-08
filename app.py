@@ -6,7 +6,7 @@ import random
 import torch.nn as nn
 import transformers
 
-# specify GPU.
+# specify GPU..
 import torch
 #device = torch.device("cuda")
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

@@ -6,7 +6,7 @@ import random
 import torch.nn as nn
 import transformers
 
-# specify GPU... to use with model
+# specify GPU
 import torch
 #device = torch.device("cuda")
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -26,53 +26,54 @@ data = {"intents": [
 ]}
 
 # We have prepared a chitchat dataset with 5 labels
-df = pd.read_excel("chitchat.xlsx")
+df=['profile', 'Governor', 'sandbox', 'apex', 'fieldrecord']
+#df = pd.read_excel("chitchat.xlsx")
 #df.head()
 
 # Converting the labels into encodings
 from sklearn.preprocessing import LabelEncoder
 le = LabelEncoder()
-df['label'] = le.fit_transform(df['label'])
+df = le.fit_transform(df)
 # check class distribution
-df['label'].value_counts(normalize = True)
+#df.value_counts(normalize = True)
 
 
 max_seq_len = 8
 
-class BERT_Arch(nn.Module):
-   def __init__(self, bert):      
-       super(BERT_Arch, self).__init__()
-       self.bert = bert 
+    class BERT_Arch(nn.Module):
+       def __init__(self, bert):      
+           super(BERT_Arch, self).__init__()
+           self.bert = bert 
       
-       # dropout layer
-       self.dropout = nn.Dropout(0.2)
+           # dropout layer
+           self.dropout = nn.Dropout(0.2)
       
-       # relu activation function
-       self.relu =  nn.ReLU()
-       # dense layer
-       self.fc1 = nn.Linear(768,512)
-       self.fc2 = nn.Linear(512,256)
-       self.fc3 = nn.Linear(256,5)
-       #softmax activation function
-       self.softmax = nn.LogSoftmax(dim=1)
-       #define the forward pass
-   def forward(self, sent_id, mask):
-      #pass the inputs to the model  
-      cls_hs = self.bert(sent_id, attention_mask=mask)[0][:,0]
+           # relu activation function
+           self.relu =  nn.ReLU()
+           # dense layer
+           self.fc1 = nn.Linear(768,512)
+           self.fc2 = nn.Linear(512,256)
+           self.fc3 = nn.Linear(256,5)
+           #softmax activation function
+           self.softmax = nn.LogSoftmax(dim=1)
+           #define the forward pass
+       def forward(self, sent_id, mask):
+          #pass the inputs to the model  
+          cls_hs = self.bert(sent_id, attention_mask=mask)[0][:,0]
       
-      x = self.fc1(cls_hs)
-      x = self.relu(x)
-      x = self.dropout(x)
+          x = self.fc1(cls_hs)
+          x = self.relu(x)
+          x = self.dropout(x)
       
-      x = self.fc2(x)
-      x = self.relu(x)
-      x = self.dropout(x)
-      # output layer
-      x = self.fc3(x)
+          x = self.fc2(x)
+          x = self.relu(x)
+          x = self.dropout(x)
+          # output layer
+          x = self.fc3(x)
    
-      # apply softmax activation
-      x = self.softmax(x)
-      return x
+          # apply softmax activation
+          x = self.softmax(x)
+          return x
 
 import re
 import random
@@ -115,9 +116,12 @@ def get_response(message):
 from transformers import DistilBertTokenizer, DistilBertModel
 # Load the DistilBert tokenizer
 tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-
+#bert = DistilBertModel.from_pretrained("distilbert-base-uncased")
 #load the saved model
-model = torch.load('trained_model.pth',torch.device(device))
+model = BERT_Arch()
+model = model.load_state_dict(torch.load('model.pth', torch.device(device)))
+#model = BERT_Arch(bert)
+#model = torch.load('trained_model.pth',torch.device(device))
 
 from flask import Flask, render_template, request
 
